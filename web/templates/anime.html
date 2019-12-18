@@ -1,0 +1,254 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+    <title>{{ baninfo.jp_title }}</title>
+    <link rel="stylesheet" href="{{url_for('static', filename='css/materialize.min.css') }}">
+    <script src="{{url_for('static', filename='js/materialize.min.js') }}"></script>
+    <script src="{{url_for('static', filename='js/echarts.js') }}"></script>
+    <script src="https://code.jquery.com/jquery-3.4.1.min.js"></script>
+    <link rel="stylesheet" href="https://fonts.googleapis.com/icon?family=Material+Icons">
+    <style>
+        .grid {
+            display: flex;
+            flex-wrap: wrap;
+            align-content: flex-start;
+        }
+
+        .row.grid .cell {
+            margin-left: 0;
+        }
+    </style>
+</head>
+
+<body>
+    <nav>
+        <div class="nav-wrapper container"><a id="logo-container" href="http://bangumi.imzhezhe.com/" class="brand-logo">Big Danmaku</a>
+            <ul class="right hide-on-med-and-down">
+                <li><a href="/topk">TopK</a></li>
+            </ul>
+        </div>
+    </nav>
+    <div class="container">
+        <div class="card">
+            <div class="card-content" style="height: 100%;">
+                <span class="card-title"> {{ baninfo.jp_title }} </span>
+                <div class="row">
+                    <div class="col s3">
+                        <div class="card">
+                            <div class="card-image">
+                                <img src="{{ baninfo.cover }}" style="height: 100%;">
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col s4">
+                        <div class="card">
+                            <div class="card-content" style="height: 100%;">
+                                <span class="card-title"> Play Count </span>
+                                <p style="text-align: center; font-size: 30px;"><i class="material-icons">video_library</i>{{ baninfo.play_count }} </p>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col s4">
+                        <div class="card">
+                            <div class="card-content" style="height: 100%;">
+                                <span class="card-title"> Danmaku Count </span>
+                                <p style="text-align: center; font-size: 30px;"><i class="material-icons">comment</i>{{ baninfo.danmaku_count }} </p>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col s4">
+                        <div class="card">
+                            <div class="card-content" style="height: 100%;">
+                                <span class="card-title"> Bilibili Rating </span>
+                                <p style="text-align: center; font-size: 30px;"><i class="material-icons">star</i>{{ baninfo.rating }} </p>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col s4">
+                        <div class="card">
+                            <div class="card-content" style="height: 100%;">
+                                <span class="card-title"> Bangumi.tv Rating </span>
+                                <p style="text-align: center; font-size: 30px;"><i class="material-icons">stars</i>{{ baninfo.bgm_rating }} </p>
+                            </div>
+                        </div>
+                    </div>        
+                </div>
+                <div class="col s12">
+                    <div class="card">
+                        <div class="card-content" style="height: 100%;">
+                            <span class="card-title"> Bilibili Description </span>
+                            <p>{{ baninfo.description }} </p>
+                        </div>
+                    </div>
+                </div>   
+            </div>
+        </div>
+
+
+        <div class="row">
+            <div class="card">
+                <div class="card-content">
+                    <span class="card-title"> Danmaku Variation </span>
+                    <div id='danmaku_count' style="width:100%; height: 500px"></div>
+                </div>
+            </div>
+        </div>
+        <div class="row">
+            <div class="col s8">
+                <div class="card">
+                    <div class="card-content">
+                        <span class="card-title"> Danmaku Emotion </span>
+                        <div id='danmaku_emotion' style="width:100%; height: 500px"></div>
+                    </div>
+                </div>
+            </div>
+            <div class="col s4">
+                <div class="card">
+                    <div class="card-content">
+                        <span class="card-title"> Danmaku Emotion Pie</span>
+                        <div id='danmaku_emotion_pie' style="width:100%; height: 500px"></div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="row">
+            <div class="card">
+                <div class="card-content">
+                    <span class="card-title"> Danmaku Counting per Episode </span>
+                    <div id='danmaku_number' style="width:100%; height: 400px"></div>
+                </div>
+            </div>
+        </div>
+
+        <div class="row">
+            <div class="card">
+                <div class="card-content">
+                    <span class="card-title"> Danmaku Sent Time Distribution </span>
+                    <div id='danmaku_time' style="width:100%; height: 500px"></div>
+                </div>
+            </div>
+        </div>
+
+        <div class="row">
+            <div class="col s6">
+                <div class="card">
+                    <div class="card-content">
+                        <span class="card-title"> Danmaku Length Distribution</span>
+                        <div id='danmaku_length' style="width:100%; height: 400px"></div>
+                    </div>
+                </div>
+            </div>
+            <div class="col s6">
+                <div class=" card">
+                    <div class="card-content">
+                        <span class="card-title"> Recent Top Danmaku </span>
+                        <div id='wordcloud' style="width:100%; height: 400px"></div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="row">
+            <div class="card">
+                <div class="card-content">
+                    <table class="striped">
+                        <thead>
+                            <tr>
+                                <th>Danmaku</th>
+                                <th>Occurrence </th>
+                            </tr>
+                        </thead>
+                        <tbody id="hotwords_content">
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+
+        <div class="row">
+            <div class="card">
+                <div class="card-content" style="height: 100%;">
+                    <span class="card-title"> Recommendation - Similar Animation: </span>
+                    <div class="row">
+                        <div class="row grid">
+                            {% for bangumi in recinfo %}
+                            <div class="col s12 m6 l4">
+                                <div class="card">
+                                    <div class="card-image">
+                                        <img src="{{ bangumi.cover }}">
+                                    </div>
+                                    <div class="card-content">
+                                        <span class="card-title">{{ bangumi.jp_title }}</span>
+                                    </div>
+                                    <div class="card-action">
+                                        <a href="{{ bangumi.url }}"> VIEW </a>
+                                    </div>
+                                </div>
+                            </div>
+                            {% endfor %}
+                            </div>
+                    </div>
+                    </div>
+            </div>
+        </div>
+
+            <!-- <div class="col s12">
+                <div class="section">
+                    <div class="col s12">
+                        <h5 class="cardtitle">Recommendation - Similar Animation:</h5>
+                    </div>
+                    <div class="row grid">
+                    {% for bangumi in recinfo %}
+                    <div class="col s12 m6 l4">
+                        <div class="card">
+                            <div class="card-image">
+                                <img src="{{ bangumi.cover }}">
+                            </div>
+                            <div class="card-content">
+                                <span class="card-title">{{ bangumi.jp_title }}</span>
+                            </div>
+                            <div class="card-action">
+                                <a href="{{ bangumi.url }}"> VIEW </a>
+                            </div>
+                        </div>
+                    </div>
+                    {% endfor %}
+                    </div>
+                </div>
+            </div> -->
+        </div>
+
+
+    </div>
+    <footer class="page-footer orange">
+        <div class="container">
+            <div class="row">
+                <div class="col">
+                    <h5 class="white-text">Final Project</h5>
+                    <p class="grey-text text-lighten-4">
+                        CISC7201 - Introduction to Data Science Programming, University of Macau, 2019 Fall
+                        <br> Data Source: Bilibili, Bangumi.tv, MyAnimelist
+                    </p>
+                </div>
+            </div>
+        </div>
+        <div class="footer-copyright">
+            <div class="container">
+                Made with ❤️ by Runzhe Zhan.
+            </div>
+        </div>
+    </footer>
+
+</body>
+<script src="{{url_for('static', filename='js/bangumi_info.js') }}"></script>
+<script src="{{url_for('static', filename='js/wordcloud2.js') }}"></script>
+<script type="">
+    draw_danmaku_count({{ baninfo.sid }}, 's')
+    draw_danmaku_number({{ baninfo.sid }})
+    draw_danmaku_length({{ baninfo.sid }})
+    draw_hotwords({{ baninfo.sid }})
+    draw_danmaku_time({{ baninfo.sid }})
+    draw_danmaku_emotion({{ baninfo.sid }})
+    draw_danmaku_emotion_pie({{ baninfo.sid }})
+</script>
