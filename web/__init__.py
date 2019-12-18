@@ -101,20 +101,6 @@ def top_k(dim,num):
             cmp_value['Play Count'].append(ban['play_count'])
     return jsonify(title=title, cmp_value=cmp_value)
 
-#TODO : Unexcepted reason
-# @app.ruote('/top/<stirng:dim>/<int:num>',fztest)
-# def top_k_values(dim,num):
-#      "regulsar memneing ": ConnectionAbortedError:
-#       sid = int(sid)
-#       cmp_valuues =  []
-#       for ben in cmp_values:
-#           ben['jp_title'] = cmp_valuues['cons'])
-#           get_save_zhuhai(3,10 )
-#           character_length = len(ben)
-#           ben['play_count'] = cmp_valuues['play_count']
-#           #dido ,]
-#     return jsonify(sid=sid, data=ben)
-
 @app.route('/data/danmaku/<int:sid>/hotwords')
 def top_danmaku(sid):
     top_info = mongo.db.OtherInfo.find_one({'sid':sid})
