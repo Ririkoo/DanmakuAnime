@@ -1,31 +1,23 @@
-import os
-import json
-import datetime
-from bson.objectid import ObjectId
+from flask import Blueprint
+from flask import render_template
 from flask import Flask, request, render_template, flash, jsonify
 from flask_pymongo import PyMongo
-from pyecharts.charts import Line
-from pyecharts import options as opts
-from pyecharts.globals import ThemeType
 import functools
 
-# create the flask object
-app = Flask(__name__)
-# add mongo url to flask config, so that flask_pymongo can use it to make connection
-app.config['MONGO_DBNAME'] = 'bilibili'
-# app.config['HOST'] = "0.0.0.0"
-app.config['MONGO_URI'] = 'mongodb://127.0.0.1:27017/bilibili'
-mongo = PyMongo(app)
+mongo = PyMongo()
+main_interface = Blueprint('main_interface', __name__, static_folder='static',
+                     template_folder='templates')
 
-@app.route('/')
+
+@main_interface.route('/')
 def index():
     ban_info = mongo.db.BangumiInfo.find({})
     return render_template('index.html',ban_info=ban_info)
-@app.route('/topk')
+@main_interface.route('/topk')
 def test():
     return render_template('topk.html')
 
-@app.route('/bangumi/<int:sid>')
+@main_interface.route('/bangumi/<int:sid>')
 def bangumi_status(sid):
     sid = int(sid)
     ban_info = mongo.db.BangumiInfo.find_one({"sid":str(sid)})
@@ -40,7 +32,7 @@ def bangumi_status(sid):
         })
     return render_template('anime.html',baninfo=ban_info,recinfo=rec_info)
 
-@app.route('/data/danmaku_number/<int:sid>/all') 
+@main_interface.route('/data/danmaku_number/<int:sid>/all') 
 def all_danmaku_number(sid):
     def cmpfun(a,b):
         if(a[0].isnumeric() and b[0].isnumeric()):
@@ -60,7 +52,7 @@ def all_danmaku_number(sid):
         danmaku_list.append(v)
     return jsonify(index=index_list, danmaku_count=danmaku_list)
 
-@app.route('/data/danmaku_count/<string:graininess>/<int:sid>/') # 计算该番剧时间序列弹幕变化
+@main_interface.route('/data/danmaku_count/<string:graininess>/<int:sid>/') # 计算该番剧时间序列弹幕变化
 def all_danmaku_info(graininess,sid):
     danmaku_info = mongo.db.DanmakuRes.find({"sid":sid,"cid":-1,"graininess":graininess})
     time_sequence = []
@@ -70,8 +62,8 @@ def all_danmaku_info(graininess,sid):
         danmaku_cnt.append(item['danmaku_count'])
     return jsonify(time_sequence=time_sequence, danmaku_count=danmaku_cnt)
 
-# TODO: Not pre-computing
-@app.route('/data/danmaku_count/<string:graininess>/<int:sid>/<int:cid>')
+
+@main_interface.route('/data/danmaku_count/<string:graininess>/<int:sid>/<int:cid>')
 def episode_danmaku_info(graininess,sid,cid):
     danmaku_info = mongo.db.DanmakuRes.find({"sid":sid,"cid":cid,"graininess":graininess})
     time_sequence = []
@@ -81,7 +73,7 @@ def episode_danmaku_info(graininess,sid,cid):
         danmaku_cnt.append(item['danmaku_count'])
     return jsonify(time_sequence=time_sequence, danmaku_count=danmaku_cnt)
 
-@app.route('/top/<string:dim>/<int:num>') 
+@main_interface.route('/top/<string:dim>/<int:num>') 
 def top_k(dim,num):
     title = []
     if dim == "rating":
@@ -101,7 +93,7 @@ def top_k(dim,num):
             cmp_value['Play Count'].append(ban['play_count'])
     return jsonify(title=title, cmp_value=cmp_value)
 
-@app.route('/data/danmaku/<int:sid>/hotwords')
+@main_interface.route('/data/danmaku/<int:sid>/hotwords')
 def top_danmaku(sid):
     top_info = mongo.db.OtherInfo.find_one({'sid':sid})
     words_list = []
@@ -109,7 +101,7 @@ def top_danmaku(sid):
         words_list.append([i,top_info['topwords_fre'][idx]])
     return jsonify(words_list)
 
-@app.route('/data/danmaku/<int:sid>/length')
+@main_interface.route('/data/danmaku/<int:sid>/length')
 def danmaku_length(sid):
     length_info = mongo.db.OtherInfo.find_one({'sid':sid})['length_distribution']
     lenrange = ['0-10','10-20','20-30','>30']
@@ -118,14 +110,14 @@ def danmaku_length(sid):
         data.append({"name":lenrange[idx] ,"value": i})
     return jsonify(series_data=data, legend=lenrange)
 
-@app.route('/data/danmaku_time/<int:sid>/all')
+@main_interface.route('/data/danmaku_time/<int:sid>/all')
 def danmaku_time(sid):
     sid = int(sid)
     sent_time_list = list(mongo.db.OtherInfo.find_one({"sid":sid})['senttime'])
     time_list = [i for i in range(0,24)]
     return jsonify(timelist=time_list,sent_time_list=sent_time_list)
 
-@app.route('/data/danmaku_emotion/<int:sid>/all')
+@main_interface.route('/data/danmaku_emotion/<int:sid>/all')
 def danmaku_emotion(sid):
     sid = int(sid)
     danmaku_info = mongo.db.DanmakuRes.find({"sid":sid,"cid":-1,"graininess":'s'})
@@ -136,7 +128,7 @@ def danmaku_emotion(sid):
         danmaku_emotion.append(item['emotion_value'])
     return jsonify(time_sequence=time_sequence, danmaku_emotion=danmaku_emotion)
 
-@app.route('/data/danmaku_emotion/<int:sid>/all_pie')
+@main_interface.route('/data/danmaku_emotion/<int:sid>/all_pie')
 def danmaku_emotion_pie(sid):
     emotion_info = mongo.db.OtherInfo.find_one({'sid':sid})
     type_name = ['Positive','Negative']
@@ -144,7 +136,7 @@ def danmaku_emotion_pie(sid):
     {"name":"Negative","value":emotion_info['negative_danmaku']}]
     return jsonify(series_data=data, legend=type_name)
 
-@app.route('/data/tag_distribution')
+@main_interface.route('/data/tag_distribution')
 def tag_distribution():
     kyoani_tag_dict = {}
     tag_query = mongo.db.BangumiInfo.find({},{"sid":1,"tag_name":1})
@@ -164,6 +156,3 @@ def tag_distribution():
         "value": tag_cnt[tag]
         })
     return jsonify(series_data=data, legend=list(tag_cnt.keys()))
-
-if __name__ == '__main__':
-    app.run(debug=True)
